@@ -4,6 +4,7 @@ import {useState} from "react";
 import Link from "next/link";
 import SearchBox from "./search-box";
 import { Dropdown, DropdownContent, DropdownTrigger } from "@/components/ui/dropdown";
+import "./styles/header.css";
 
 const transformLeft = {
     transform: "translateX(-4rem)",
@@ -37,12 +38,18 @@ export function Header() {
                                 <IconUser className="small text-white" />
                         </DropdownTrigger>
                         <DropdownContent align="start" style={transformLeft}>
-                            <ul>
+                            <ul className="dropdown-menu-list">
+                                <li>
+                                    <Link className="dropdown-item" href="/login">Login</Link>
+                                </li>
+                                <li>
+                                    <Link className="dropdown-item" href="/register">Register</Link>
+                                </li>
                                 <li>
                                     <Link className="dropdown-item" href="/profile">Profile</Link>
                                 </li>
                                 <li>
-                                    <Link className="dropdown-item" href="/settings">Settings</Link>
+                                    <Link className="dropdown-item" href="/settings">Setting</Link>
                                 </li>
                                 <li>
                                     <hr className="dropdown-divider" />

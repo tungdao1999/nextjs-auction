@@ -1,5 +1,9 @@
-import React from "react";
+
+'use client';
+
+import React, { use, useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+
 
 type Product = {
     id: number;
@@ -57,6 +61,29 @@ const categories = [
 ];
 
 export default function ProductPage() {
+    const [items, setItems] = useState<Product[]>([]);
+
+    useEffect(() => {
+        async function fetchItem() {
+            try {
+                const response = await fetch('/api/item', {
+                    method: 'GET',
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Fetched items:", data);
+                }
+                else {
+                    console.log("Failed to fetch items");
+                }
+            }
+            catch {
+                console.error("Failed to fetch item");
+            }
+        }
+        fetchItem();
+    }, [items]);
+
     return (
         <div className="container py-4">
             {/* Landing Picture */}

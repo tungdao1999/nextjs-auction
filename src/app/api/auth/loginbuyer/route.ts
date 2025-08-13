@@ -1,0 +1,30 @@
+import { NextResponse } from 'next/server';
+import { LoginParams } from './param';
+import { createSession } from '@/lib/sessionStore';
+
+export async function POST(request: Request) {
+    const loginParams: LoginParams = await request.json();
+    console.log('Login Params:', loginParams);
+
+    const response = await fetch(`${process.env.BACKEND_URL}/api/auth/loginBuyer`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginParams),
+    });
+    console.log('Response Status:', response);
+
+    if (!response.ok) {
+        return NextResponse.json({ error: 'Login failed' }, { status: 401 });
+    }
+
+    const { userId , token} = await response.json(); 
+    console.log("response", { userId , token});
+
+    const sessionId = createSession(userId, token);
+
+    const res = NextResponse.json({ sessionId });
+    res.headers.set('Set-Cookie', `sessionId=${sessionId}; Path=/; Secure; HttpOnly; SameSite=Strict`);
+    return res;
+}
