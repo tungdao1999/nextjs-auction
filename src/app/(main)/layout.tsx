@@ -5,6 +5,7 @@ import { Header } from "@/components/Layout/header";
 import Footer from "@/components/Layout/footer";
 import { Providers } from "../providers";
 
+
 export default function MainLayout({
     children,
 }: PropsWithChildren) {

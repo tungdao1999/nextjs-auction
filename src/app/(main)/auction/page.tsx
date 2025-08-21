@@ -3,16 +3,18 @@
 
 import React, { use, useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import BootstrapModal from "@/components/modal";
+import Bid from "./component/bid";
 
 
 type Auction = {
-    id: number;
-    itemId: number;
+    id:string;
+    itemId: string;
     description: string;
     startTime: string;
     startingPrice: number;
     title: string;
-    sellerId: number;
+    sellerId: string;
     itemName: string;
     sellerName: string;
     itemImage?: string
@@ -30,6 +32,7 @@ const categories = [
 
 export default function ProductPage() {
     const [auctions, setAuctions] = useState<Auction[]>([]);
+    const [selectedAuction, setSelectedAuction] = useState<Auction>();
 
     useEffect(() => {
         async function fetchAuction() {
@@ -39,7 +42,6 @@ export default function ProductPage() {
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    console.log("Fetched items:", data);
                     setAuctions(data);
                 }
                 else {
@@ -120,7 +122,14 @@ export default function ProductPage() {
                                     <p className="card-text text-muted mb-2">{auc.description}</p>
                                     <div className="mt-auto d-flex justify-content-between align-items-center">
                                         <span className="fw-bold fs-5 text-success">${auc.startingPrice}</span>
-                                        <button className="btn btn-primary btn-sm px-3 shadow">Select</button>
+                                        <button
+                                            className="btn btn-primary btn-sm px-3 shadow"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#bidModal"
+                                            onClick={() => setSelectedAuction(auc)}
+                                        >
+                                            Bid
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -128,6 +137,11 @@ export default function ProductPage() {
                     </React.Fragment>
                 ))}
             </div>
+            <BootstrapModal
+                id="bidModal"
+                header="Place your bid"
+                body={selectedAuction?.id && <Bid auctionId={selectedAuction?.id} />}
+            ></BootstrapModal>
         </div>
     );
 }
