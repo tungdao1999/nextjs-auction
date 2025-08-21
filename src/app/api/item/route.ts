@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     if (!cookie) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
 
     const sessionId = cookie.split("=")[1];
-    const session = getSession(sessionId);
+    const session = await getSession(sessionId);
     if (!session) return NextResponse.json({ error: "Session expired" }, { status: 401 });
 
     const response = await fetch(`${process.env.BACKEND_URL}/api/item/getAllItems`, {

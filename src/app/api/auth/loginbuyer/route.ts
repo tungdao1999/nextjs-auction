@@ -4,7 +4,6 @@ import { createSession } from '@/lib/sessionStore';
 
 export async function POST(request: Request) {
     const loginParams: LoginParams = await request.json();
-    console.log('Login Params:', loginParams);
 
     const response = await fetch(`${process.env.BACKEND_URL}/api/auth/loginBuyer`, {
         method: 'POST',
@@ -20,7 +19,6 @@ export async function POST(request: Request) {
     }
 
     const { userId , token} = await response.json(); 
-    console.log("response", { userId , token});
 
     const sessionId = createSession(userId, token);
 

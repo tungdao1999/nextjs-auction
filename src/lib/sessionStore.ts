@@ -1,19 +1,20 @@
-const sessionStore = new Map();
+import redis from "./redisClient"
 
 export function createSession(userId : string, accessToken: string) {
     const sessionId = crypto.randomUUID();
-    sessionStore.set(sessionId, { userId, accessToken });
+    redis?.set(`sessionId-${sessionId}`, JSON.stringify({ userId, accessToken }));
     return sessionId;
 }
 
 export function setSession(key : string, value: any) {
-    sessionStore.set(key, value);
+    redis?.set(`sessionId-${key}`, JSON.stringify(value));
 }
 
-export function getSession(key: string) {
-    return sessionStore.get(key);
+export async function getSession(key: string) {
+    const data = await redis?.get(`sessionId-${key}`);
+    return data ? JSON.parse(data) : null;
 }
 
-export function clearSession(key: string) {
-    sessionStore.delete(key);
+export async function clearSession(key: string) {
+    await redis?.del(`sessionId-${key}`);
 }
