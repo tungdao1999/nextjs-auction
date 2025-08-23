@@ -1,25 +1,11 @@
-
 'use client';
 
 import React, { use, useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import BootstrapModal from "@/components/modal";
 import Bid from "./component/bid";
-
-
-type Auction = {
-    id:string;
-    itemId: string;
-    description: string;
-    startTime: string;
-    startingPrice: number;
-    title: string;
-    sellerId: string;
-    itemName: string;
-    sellerName: string;
-    itemImage?: string
-};
-
+import { Auction } from "./types/auction";
+import { createClientAxios } from "@/lib/axiosClient";
 
 const categories = [
     "Electronics",
@@ -31,25 +17,25 @@ const categories = [
 ];
 
 export default function ProductPage() {
+   
     const [auctions, setAuctions] = useState<Auction[]>([]);
     const [selectedAuction, setSelectedAuction] = useState<Auction>();
 
     useEffect(() => {
         async function fetchAuction() {
             try {
-                const response = await fetch('/api/auction', {
-                    method: 'GET',
-                });
-                if (response.ok) {
-                    const data = await response.json();
+                const axiosInstance = await createClientAxios();
+                const response = await axiosInstance.get('/api/auction/getRunningAuction');
+                if (response.status === 200) {
+                    const data = response.data;
                     setAuctions(data);
                 }
                 else {
                     console.log("Failed to fetch items");
                 }
             }
-            catch {
-                console.error("Failed to fetch item");
+            catch (error) {
+                console.error("Failed to fetch items", error);
             }
         }
         fetchAuction();
@@ -141,6 +127,7 @@ export default function ProductPage() {
                 id="bidModal"
                 header="Place your bid"
                 body={selectedAuction?.id && <Bid auctionId={selectedAuction?.id} />}
+                size="xl"
             ></BootstrapModal>
         </div>
     );

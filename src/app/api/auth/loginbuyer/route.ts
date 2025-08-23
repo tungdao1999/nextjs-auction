@@ -12,7 +12,6 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify(loginParams),
     });
-    console.log('Response Status:', response);
 
     if (!response.ok) {
         return NextResponse.json({ error: 'Login failed' }, { status: 401 });
@@ -20,9 +19,7 @@ export async function POST(request: Request) {
 
     const { userId , token} = await response.json(); 
 
-    const sessionId = createSession(userId, token);
-
-    const res = NextResponse.json({ sessionId });
-    res.headers.set('Set-Cookie', `sessionId=${sessionId}; Path=/; Secure; HttpOnly; SameSite=Strict`);
+    const res = NextResponse.json({ token });
+    //res.headers.set('Set-Cookie', `sessionId=${sessionId}; Path=/; Secure; HttpOnly; SameSite=Strict`);
     return res;
 }

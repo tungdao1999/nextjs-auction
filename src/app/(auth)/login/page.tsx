@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
+import { createServerAxios } from '@/lib/axiosClient';
 
 export default function LoginPage() {
     const [identifier, setIdentifier] = React.useState('');
@@ -14,21 +15,22 @@ export default function LoginPage() {
             password,
         };
 
-        fetch('/api/auth/loginbuyer', {
+        const response = await fetch('/api/auth/loginbuyer', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(loginParams),
-        }).then(response => {
-            if (response.ok) {
-                // Handle successful login, e.g., redirect to dashboard
-                window.location.href = '/product';
-            } else {
-                // Handle login failure, e.g., show an error message
-                alert('Login failed. Please check your credentials.');
-            }
         });
+
+        if (response.ok) {
+            const data = await response.json();
+            // Assuming the token is returned as data.token
+            localStorage.setItem('auction_token_buyer', data.token);
+            window.location.href = '/auction';
+        } else {
+            alert('Login failed. Please check your credentials.');
+        }
     }
 
     return (

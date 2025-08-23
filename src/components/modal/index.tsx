@@ -6,20 +6,22 @@ interface BootstrapModalProps {
   header?: React.ReactNode
   body?: React.ReactNode
   footer?: React.ReactNode
+  size?: 'sm' | 'lg' | 'xl'
 }
 
 export default function BootstrapModal({ 
     id, 
     header, 
     body, 
-    footer 
+    footer,
+    size 
     }: BootstrapModalProps) {
     useEffect(() => {
         import('bootstrap/dist/js/bootstrap.bundle.min.js')
     }, [])
     return (
         <div className="modal fade" id={id} tabIndex={-1} aria-labelledby={`${id}-Label`} aria-hidden="true">
-        <div className="modal-dialog modal-dialog-centered">
+        <div className={`modal-dialog modal-dialog-centered ${size ? `modal-${size}` : 'modal-lg'}`}>
             <div className="modal-content">
             {header && (
                 <div className="modal-header">
