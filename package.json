@@ -18,7 +18,8 @@
     "nextjs-toploader": "^3.8.16",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-multi-carousel": "^2.8.6"
+    "react-multi-carousel": "^2.8.6",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
