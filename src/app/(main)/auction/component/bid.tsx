@@ -3,10 +3,16 @@ import { createClientAxios } from "@/lib/axiosClient";
 import { useEffect, useState } from "react";
 import { Auction } from "../types/auction";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Carousel from "react-multi-carousel";
+import "react-multi-carousel/lib/styles.css";
+import { Item } from "../types/item";
 
 export default function Bid({ auctionId }: { auctionId: string }) {
     const [bidAmount, setBidAmount] = useState(0);
     const [auctionDetails, setAuctionDetails] = useState<Auction | null>(null);
+    const [relatedItems, setRelatedItems] = useState<Item[]>([]);
+    const [currentItemIndex, setCurrentItemIndex] = useState(0);
+
     useEffect(() => {
         const fetchData = async () => {
             const axiosInstance = await createClientAxios();
@@ -15,11 +21,33 @@ export default function Bid({ auctionId }: { auctionId: string }) {
                 setAuctionDetails(response.data);
             }
         };
+        const fetchRelatedItems = async () => {
+            const axiosInstance = await createClientAxios();
+            await axiosInstance.get(`/api/item/getRelatedItems/${auctionId}`)
+            .then((res) => { 
+                setRelatedItems(res.data);
+                const currentItemIndex = res.data.findIndex((item: Item) => item.status === 'active');
+                setCurrentItemIndex(currentItemIndex);
+            })
+            .catch((error) => {
+                console.error("Error fetching related items:", error);
+            });
+
+        };
         fetchData();
+        fetchRelatedItems();
     }, [auctionId]);
 
-    const handleBid = () => {
-        console.log("Bid placed with amount:", bidAmount);
+    const handleBid = async () => {
+        const axiosInstance = await createClientAxios();
+        axiosInstance.post(`/api/bid/createBid`, { auctionId, itemId: relatedItems[currentItemIndex].id, price: bidAmount })
+            .then((response) => {
+                console.log("Bid placed successfully:", response.data);
+            })
+            .catch((error) => {
+                console.error("Bid placement error:", error);
+                // alert
+            });
     };
 
     return (
@@ -39,6 +67,45 @@ export default function Bid({ auctionId }: { auctionId: string }) {
                         </>
                     )}
                 </div>
+                <div className="col-12">
+                    <Carousel
+                        additionalTransfrom={0}
+                        arrows
+                        autoPlaySpeed={3000}
+                        centerMode={false}
+                        className=""
+                        containerClass="carousel-container"
+                        dotListClass=""
+                        draggable
+                        focusOnSelect={false}
+                        infinite
+                        itemClass="carousel-item-padding-40-px"
+                        keyBoardControl
+                        minimumTouchDrag={80}
+                        renderButtonGroupOutside={false}
+                        renderDotsOutside={false}
+                        responsive={{
+                            superLargeDesktop: { breakpoint: { max: 4000, min: 1024 }, items: 4 },
+                            desktop: { breakpoint: { max: 1024, min: 768 }, items: 3 },
+                            tablet: { breakpoint: { max: 768, min: 464 }, items: 2 },
+                            mobile: { breakpoint: { max: 464, min: 0 }, items: 1 }
+                        }}
+                        showDots={false}
+                        sliderClass=""
+                        slidesToSlide={1}
+                        swipeable
+                    >
+                        {relatedItems.map((item: Item) => (
+                            <div key={item.id} className="card h-100">
+                                <img src={item.image} alt={item.name} className="card-img-top" style={{ height: 180, objectFit: "cover" }} />
+                                <div className="card-body">
+                                    <h5 className="card-title">{item.name}</h5>
+                                    <p className="card-text">{item.description}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </Carousel>
+                </div>
             </div>
             <div className="row">
                 <div className="col-md-9">
@@ -47,7 +114,6 @@ export default function Bid({ auctionId }: { auctionId: string }) {
                             <TableRow>
                                 <TableHead>Bidder</TableHead>
                                 <TableHead>Amount</TableHead>
-                                <TableHead>Time</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -57,7 +123,6 @@ export default function Bid({ auctionId }: { auctionId: string }) {
                                         <TableRow key={bidding.id}>
                                             <TableCell>{bidding.buyerName}</TableCell>
                                             <TableCell>${bidding.price}</TableCell>
-                                            <TableCell>{bidding.createdAt}</TableCell>
                                         </TableRow>
                                     ))}
                                 </>
@@ -67,20 +132,21 @@ export default function Bid({ auctionId }: { auctionId: string }) {
                 </div>
                 <div className="col-md-3 d-flex flex-column justify-content-between">
                     <div className="mb-3">
-                        <strong>Ranking:</strong> #2
-                    </div>
-                    <div className="mb-3">
                         <label htmlFor="bidAmount" className="form-label">
                             <strong>Bidding Number:</strong>
                         </label>
-                        <input
-                            type="number"
-                            id="bidAmount"
-                            className="form-control"
-                            value={bidAmount}
-                            min={1}
-                            onChange={(e) => setBidAmount(Number(e.target.value))}
-                        />
+                        <div className="input-group">
+                            <input
+                                type="number"
+                                id="bidAmount"
+                                className="form-control"
+                                value={bidAmount}
+                                min={0}
+                                step={10000}
+                                onChange={(e) => setBidAmount(Number(e.target.value))}
+                            />
+                            <span className="input-group-text">VND</span>
+                        </div>
                     </div>
                     <div>
                         <button className="btn btn-primary btn-sm px-3 shadow w-100" onClick={handleBid}>

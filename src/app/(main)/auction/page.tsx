@@ -6,6 +6,7 @@ import BootstrapModal from "@/components/modal";
 import Bid from "./component/bid";
 import { Auction } from "./types/auction";
 import { createClientAxios } from "@/lib/axiosClient";
+import AuctionCard from "./component/auctionCard";
 
 const categories = [
     "Electronics",
@@ -16,10 +17,11 @@ const categories = [
     "Books",
 ];
 
-export default function ProductPage() {
-   
+export default function AuctionPage() {
+
     const [auctions, setAuctions] = useState<Auction[]>([]);
     const [selectedAuction, setSelectedAuction] = useState<Auction>();
+    const [isShowBid, setIsShowBid] = useState(false);
 
     useEffect(() => {
         async function fetchAuction() {
@@ -40,6 +42,34 @@ export default function ProductPage() {
         }
         fetchAuction();
     }, []);
+
+    const updateSelectedAuction = async () => {
+        setIsShowBid(false);
+        try {
+            if (selectedAuction?.id) {
+                const axiosInstance = await createClientAxios();
+                axiosInstance.get(`/api/auction/${selectedAuction.id}`)
+                    .then((response) => {
+                        if (response.status === 200) {
+                            const updatedAuction = response.data;
+                            setSelectedAuction(updatedAuction);
+                            setAuctions((prevAuctions) =>
+                                prevAuctions.map((auc) =>
+                                    auc.id === updatedAuction.id ? updatedAuction : auc
+                                )
+                            );
+                        } else {
+                            console.log("Failed to reload auction");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Failed to reload auction", error);
+                    });
+            }
+        } catch (error) {
+            console.error("Failed to reload auction", error);
+        }
+    }
 
     return (
         <div className="container py-4">
@@ -88,47 +118,26 @@ export default function ProductPage() {
                     </div>
                 </div>
             </div>
-
-            {/* Product Cards */}
             <div className="row g-4">
-                {Array.isArray(auctions) && auctions.map((auc) => (
-                    <React.Fragment key={auc.id}>
-                        <div className="col-md-4 col-sm-6">
-                            <div className="card h-100 shadow-lg border-0" style={{ borderRadius: 16 }}>
-                                {auc.itemImage && (
-                                    <img
-                                        src={auc.itemImage}
-                                        alt={auc.itemName}
-                                        className="card-img-top"
-                                        style={{ height: 160, objectFit: "cover", borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
-                                    />
-                                )}
-                                <div className="card-body d-flex flex-column">
-                                    <h5 className="card-title fw-bold">{auc.title}</h5>
-                                    <p className="card-text text-muted mb-2">{auc.description}</p>
-                                    <div className="mt-auto d-flex justify-content-between align-items-center">
-                                        <span className="fw-bold fs-5 text-success">${auc.startingPrice}</span>
-                                        <button
-                                            className="btn btn-primary btn-sm px-3 shadow"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#bidModal"
-                                            onClick={() => setSelectedAuction(auc)}
-                                        >
-                                            Bid
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </React.Fragment>
+                {auctions.map((auc) => (
+                    <AuctionCard
+                        key={auc.id}
+                        auction={auc}
+                        onBidClick={(auction) => {
+                            setSelectedAuction(auction);
+                            setIsShowBid(true);
+                        }}
+                    />
                 ))}
             </div>
             <BootstrapModal
                 id="bidModal"
                 header="Place your bid"
-                body={selectedAuction?.id && <Bid auctionId={selectedAuction?.id} />}
+                body={selectedAuction?.id && <Bid auctionId={selectedAuction?.id} onBidPlaced={updateSelectedAuction} />}
                 size="xl"
-            ></BootstrapModal>
+                show={isShowBid}
+                onClose={() => setIsShowBid(false)}
+            />
         </div>
     );
 }

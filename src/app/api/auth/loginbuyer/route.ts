@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { LoginParams } from './param';
-import { createSession } from '@/lib/sessionStore';
 
 export async function POST(request: Request) {
     const loginParams: LoginParams = await request.json();
 
-    const response = await fetch(`${process.env.BACKEND_URL}/api/auth/loginBuyer`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/loginBuyer`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

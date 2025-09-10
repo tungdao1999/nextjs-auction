@@ -4,6 +4,7 @@ export interface Auction {
     description: string;
     startTime: string;
     startingPrice: number;
+    highestBid: number;
     title: string;
     sellerId: string;
     itemName: string;
