@@ -11,6 +11,7 @@ interface WebSocketContextType {
     ws: WebSocket | null;
     messages: any[];
     sendMessage: (msg: string) => void;
+    receiveMessage: (callback: (msg: any) => void) => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -25,8 +26,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     const wsRef = useRef<WebSocket | null>(null);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        const socket = new WebSocket(`ws://localhost:8080?token=${token}`);
+        const token = localStorage.getItem("auction_token_buyer");
+        const socket = new WebSocket(`ws://localhost:8181?token=${token}`);
+        console.log("socket", socket);
 
         wsRef.current = socket;
 
@@ -41,7 +43,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
         socket.onclose = () => {
             console.log("WebSocket disconnected");
-            // Optional: implement reconnect logic
         };
 
         setWs(socket);
@@ -57,8 +58,17 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         }
     };
 
+    const receiveMessage = (callback: (msg: any) => void) => {
+        if (wsRef.current) {
+            wsRef.current.onmessage = (event: MessageEvent) => {
+                const data = JSON.parse(event.data);
+                callback(data);
+            };
+        }
+    };
+
     return (
-        <WebSocketContext.Provider value={{ ws, messages, sendMessage }}>
+        <WebSocketContext.Provider value={{ ws, messages, sendMessage, receiveMessage }}>
             {children}
         </WebSocketContext.Provider>
     );

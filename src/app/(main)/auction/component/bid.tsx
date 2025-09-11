@@ -6,12 +6,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 import { Item } from "../types/item";
+import { useWebSocket } from "@/app/providers/socketProvider";
 
 export default function Bid({ auctionId }: { auctionId: string }) {
     const [bidAmount, setBidAmount] = useState(0);
     const [auctionDetails, setAuctionDetails] = useState<Auction | null>(null);
     const [relatedItems, setRelatedItems] = useState<Item[]>([]);
     const [currentItemIndex, setCurrentItemIndex] = useState(0);
+    const { sendMessage, receiveMessage } = useWebSocket();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -32,11 +34,31 @@ export default function Bid({ auctionId }: { auctionId: string }) {
             .catch((error) => {
                 console.error("Error fetching related items:", error);
             });
-
         };
         fetchData();
         fetchRelatedItems();
     }, [auctionId]);
+
+    useEffect(() => {
+        if (!auctionId) return;
+
+        const topic = `bid-${auctionId}-${relatedItems[currentItemIndex]?.id}`;
+        sendMessage(JSON.stringify({ action: "subscribe", topic }));
+
+        receiveMessage((data) => {
+            console.log("WebSocket message received:", data);
+            if (data.topic === topic) {
+                const newBid = data.message.createdBid;
+                console.log("Received new bid via WebSocket:", newBid);
+                auctionDetails?.biddings.unshift(newBid);
+                setAuctionDetails({ ...auctionDetails! });
+            }
+        });
+
+        return () => {
+            sendMessage(JSON.stringify({ action: "unsubscribe", topic }));
+        }
+    }, [auctionId, relatedItems, currentItemIndex]);
 
     const handleBid = async () => {
         const axiosInstance = await createClientAxios();
